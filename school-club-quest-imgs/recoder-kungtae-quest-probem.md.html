@@ -1,0 +1,80 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>recoder-kungtae-quest-probem.md</title>
+  <link rel="stylesheet" href="https://stackedit.io/style.css" />
+</head>
+
+<body class="stackedit">
+  <div class="stackedit__html"><h1 id="hook-아키텍쳐상의-퀘스트-시스템에서의-문제점">Hook 아키텍쳐상의 퀘스트 시스템에서의 문제점</h1>
+<h2 id="깨달았다-hook-아키텍쳐의-핵심을">“깨달았다 Hook 아키텍쳐의 핵심을!!”</h2>
+<p><img src="https://cdn.jsdelivr.net/gh/groomy790/cdn@main/school-club-quest-imgs/img1.jpg" alt="Image 01"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/groomy790/cdn@main/school-club-quest-imgs/img2.jpg" alt="Image 02"></p>
+<ul>
+<li>Hook은 “고리를 걸다라는 뜻임”</li>
+<li><code>class Element</code>를 상속받는 클래스는 <strong>무언가 중요한 일</strong>이 일어날 수 있음</li>
+<li>이 중요한 일을 바로 그 클래스에게 고리를 걸어 놓은 Hook이 감지하고 Business Logic을 작성 할 수 있음</li>
+<li>따라서, 메세지 출력과 같은 <strong>범부 같은 일</strong>에 한해서, Hook이 자동으로 처리하게하고 무시할 수 있음</li>
+</ul>
+<p><img src="https://cdn.jsdelivr.net/gh/groomy790/cdn@main/school-club-quest-imgs/img3.jpg" alt="Image 03"></p>
+<p>결국 중요한 Logic과 부수적인 로직의 계층을 구분한 것임<br>
+또한 원래라면 서로 의존성을 가져야할 코드를 단방향의 의존성으로 분리함</p>
+<pre class=" language-txt"><code class="prism  language-txt">예를 들어, 오크 전사가 공격받는 로직과 "SYSTEM: 오크 전사의 자세에 빈틈이 보입니다."은
+서로에게 의존하는 관계이지만 Hook으로 설계할 경우
+
+[Hook의 작동 내용]
+- 그 Element의 이름을 얻는다 (왜냐면 그건 모든 Element에게 있는 정보니까)
+- 그 Element의 현재 이벤트가 attacked라면
+- [그 Element의 이름] + "의 자세가 무너집니다."라고 출력함
+
+과 같은 방식으로
+Hook은 Hook대로 재사용 가능하고
+오크 전사의 로직에서는 메세지 출력을 아예 배제할 수 있음
+</code></pre>
+<h2 id="잘-가라-최강-quest-시스템이-없는-시대에-태어난-것뿐인-범부여.">“잘 가라, 최강 Quest 시스템이 없는 시대에 태어난 것뿐인 범부여.”</h2>
+<p>우리는 Quest를 Hook의 일환으로 처리하려 했음 (즉 Quest를 Hook 레벨로 보고 접근하려고함)</p>
+<p><img src="https://cdn.jsdelivr.net/gh/groomy790/cdn@main/school-club-quest-imgs/img4.jpg" alt="Image 04"></p>
+<p>그러나 다음과 같은 문제 발생</p>
+<p><img src="https://cdn.jsdelivr.net/gh/groomy790/cdn@main/school-club-quest-imgs/img5.jpg" alt="Image 05"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/groomy790/cdn@main/school-club-quest-imgs/img6.jpg" alt="Image 06"></p>
+<ol>
+<li>퀘스트 내릴때, NPC가 Quest 정보에 의존</li>
+<li>몹이 죽을때, Quest Hook이 Quest 정보에 상호의존</li>
+<li>퀘스트 완료시 NPC가 QuestHook에 의존 (왜냐면 플레이어에게 아이템을 지급하는 것은 Quest Hook만 가능하기때문)</li>
+<li>퀘스트 완료 대화 시도시 NPC가 Quest 정보에 의존</li>
+</ol>
+<blockquote>
+<p>사실 지금 예상한건만 이정도지 얼마나 더 개판이 될지는 아무도 모름</p>
+</blockquote>
+<p>이라는 죽음의 고리가 만들어지 상황 (특히 4번 때문에)</p>
+<p><img src="https://cdn.jsdelivr.net/gh/groomy790/cdn@main/school-club-quest-imgs/img7.jpg" alt="Image 07"></p>
+<p>이 경우에는 다음중 하나의 상황만 발생하더라도 Business Logic 부분을 크게 변경해야함</p>
+<ol>
+<li>다른 모든 Hook에서 퀘스트 관련 부분이 수정되는 경우</li>
+<li>Quest Hook이나 Quest 관련 구현 부분이나 Qeust의 spec이 변화하는 경우</li>
+<li>NPC가 Quest를 다루는 방식이 변하는 경우</li>
+</ol>
+<p>따라서, 우리는 다음의 3지 선다는 받아들여야함</p>
+<ol>
+<li>Quest를 Business Logic으로 격상시키면서 아키테텍쳐를 약간 변경하거나 (단방향 의존 가능 / 그러나 횡적 의존 불가피)</li>
+<li>Quest를 Hook 레벨로 유지라는 대신 코드를 확실하게 짜거나 (단방향 의존 불가능)</li>
+<li>Actor + Provider / consumer 모델로 아키텍쳐를 변경하거난 (단방향 의존 가능)</li>
+</ol>
+<p>사실 시스템의 거의 대부분이 <strong>아름답지 않은 방식으로 Player의 정보를 Hook이 변경하는것</strong>을 허용하고 있음<br>
+하지만, 기존에는 이게 하나의 Hook이 하나의 변경만 만들고 끝났지만<br>
+Quest로 넘어오면서 너무 많은 Hook과 Business Logic이 여기에 얽히게됨</p>
+<pre><code>결국 복잡도가 이해가능한 수준인가?
+아니면 이해불가능한 수준인가?
+의 차이
+</code></pre>
+<p>즉, 어느걸 선택하든 <strong>아름답지 않은 Player 정보 수정</strong> 혹은 <strong>그것을 막기위한 시스템</strong> 둘중 하나의<br>
+댓가를 치뤄야함</p>
+<h2 id="새로운-actor--providerconsmer-아키텍쳐">새로운 Actor + Provider/Consmer 아키텍쳐</h2>
+<p>TO BE CONTINUED (apc.java)</p>
+</div>
+</body>
+
+</html>
